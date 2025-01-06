@@ -76,6 +76,11 @@ void ASlashCourseCharacter::Look(const FInputActionValue& Value)
 	}
 }
 
+void ASlashCourseCharacter::Jump()
+{
+	Super::Jump();
+}
+
 // Called every frame
 void ASlashCourseCharacter::Tick(float DeltaTime)
 {
@@ -92,6 +97,7 @@ void ASlashCourseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInp
 	{
 		EnhancedInputComponent->BindAction(MovementAction, ETriggerEvent::Triggered, this, &ASlashCourseCharacter::Move);
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ASlashCourseCharacter::Look);
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ASlashCourseCharacter::Jump);
 	}
 }
 
