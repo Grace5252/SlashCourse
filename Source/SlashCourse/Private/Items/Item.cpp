@@ -2,6 +2,7 @@
 
 
 #include "Items/Item.h"
+#include "Components/SphereComponent.h"
 
 // Sets default values
 AItem::AItem()
@@ -11,17 +12,36 @@ AItem::AItem()
 
 	ItemMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ItemMeshComponent"));
 	RootComponent = ItemMesh;
+
+	Sphere = CreateDefaultSubobject<USphereComponent>(TEXT("Sphere"));
+	Sphere->SetupAttachment(RootComponent);
 }
 
 // Called when the game starts or when spawned
 void AItem::BeginPlay()
 {
 	Super::BeginPlay();
+
+	Sphere->OnComponentBeginOverlap.AddDynamic(this, &AItem::OnSphereBeginOverlap);
+	Sphere->OnComponentEndOverlap.AddDynamic(this, &AItem::OnSphereEndOverlap);
 }
 
 float AItem::TransformedSin()
 {
 	return Amplitude * FMath::Sin(TimeConstant * RunningTime);
+}
+
+void AItem::OnSphereBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	const FString OtherActorName = OtherActor->GetName();
+	UE_LOG(LogTemp, Warning, TEXT("The Actor's Name on BeginOverlap is %s"), *OtherActorName);
+
+}
+
+void AItem::OnSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	const FString OtherActorName = OtherActor->GetName();
+	UE_LOG(LogTemp, Warning, TEXT("The Actor's Name on EndOverlap is %s"), *OtherActorName);
 }
 
 // Called every frame
