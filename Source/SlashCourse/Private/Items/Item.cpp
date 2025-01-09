@@ -3,6 +3,7 @@
 
 #include "Items/Item.h"
 #include "Components/SphereComponent.h"
+#include "Characters/SlashCourseCharacter.h"
 
 // Sets default values
 AItem::AItem()
@@ -33,15 +34,18 @@ float AItem::TransformedSin()
 
 void AItem::OnSphereBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	const FString OtherActorName = OtherActor->GetName();
-	UE_LOG(LogTemp, Warning, TEXT("The Actor's Name on BeginOverlap is %s"), *OtherActorName);
-
+	if (ASlashCourseCharacter* SlashCourseCharacter = Cast<ASlashCourseCharacter>(OtherActor)) 
+	{
+		SlashCourseCharacter->SetOverlappingItem(this);
+	}
 }
 
 void AItem::OnSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	const FString OtherActorName = OtherActor->GetName();
-	UE_LOG(LogTemp, Warning, TEXT("The Actor's Name on EndOverlap is %s"), *OtherActorName);
+	if (ASlashCourseCharacter* SlashCourseCharacter = Cast<ASlashCourseCharacter>(OtherActor))
+	{
+		SlashCourseCharacter->SetOverlappingItem(nullptr);
+	}
 }
 
 // Called every frame
