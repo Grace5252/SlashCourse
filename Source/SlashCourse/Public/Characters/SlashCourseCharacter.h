@@ -15,6 +15,7 @@ class UInputAction;
 class UGroomComponent;
 struct FInputActionValue;
 class AItem;
+class UAnimMontage;
 
 UCLASS()
 class SLASHCOURSE_API ASlashCourseCharacter : public ACharacter
@@ -44,14 +45,29 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Input")
 	UInputAction* EquipAction;
 
+	UPROPERTY(EditAnywhere, Category = "Input")
+	UInputAction* AttackAction;
+
+	//Callbacks for Input
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
 	virtual void Jump() override;
 	void EKeyPressed();
+	void Attack();
 
+	/**
+	* Play Montage Functions
+	*/
+	void PlayAttackMontage();
+
+	UFUNCTION(BlueprintCallable)
+	void AttackEnd();
 private:
 	ECharacterState CharacterState = ECharacterState::ECS_Unequipped;
-	
+
+	UPROPERTY(BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	EActionState ActionState = EActionState::EAS_Unoccupied;
+
 	UPROPERTY(VisibleAnywhere)
 	USpringArmComponent* SpringArm;
 
@@ -66,6 +82,12 @@ private:
 
 	UPROPERTY(VisibleInstanceOnly)
 	AItem* OverlappingItem;
+
+	/**
+	* Animation Montages
+	*/
+	UPROPERTY(EditDefaultsOnly, Category = "Montages")
+	UAnimMontage* AttackMontage;
 
 public:
 	FORCEINLINE void SetOverlappingItem(AItem* Item) { OverlappingItem = Item; }
