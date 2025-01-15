@@ -15,6 +15,7 @@ class UInputAction;
 class UGroomComponent;
 struct FInputActionValue;
 class AItem;
+class AWeapon;
 class UAnimMontage;
 
 UCLASS()
@@ -59,9 +60,23 @@ protected:
 	* Play Montage Functions
 	*/
 	void PlayAttackMontage();
+	void PlayEquipMontage(FName SectionName);
 
 	UFUNCTION(BlueprintCallable)
 	void AttackEnd();
+
+	UFUNCTION(BlueprintCallable)
+	void Disarm();
+
+	UFUNCTION(BlueprintCallable)
+	void Arm();
+
+	UFUNCTION(BlueprintCallable)
+	void FinishEquippingWeapon();
+
+	bool CanAttack();
+	bool CanDisarm();
+	bool CanArm();
 private:
 	ECharacterState CharacterState = ECharacterState::ECS_Unequipped;
 
@@ -83,11 +98,17 @@ private:
 	UPROPERTY(VisibleInstanceOnly)
 	AItem* OverlappingItem;
 
+	UPROPERTY(VisibleAnywhere, Category = "Weapon")
+	AWeapon* EquippedWeapon;
+
 	/**
 	* Animation Montages
 	*/
 	UPROPERTY(EditDefaultsOnly, Category = "Montages")
 	UAnimMontage* AttackMontage;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Montages")
+	UAnimMontage* EquipMontage;
 
 public:
 	FORCEINLINE void SetOverlappingItem(AItem* Item) { OverlappingItem = Item; }
