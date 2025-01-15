@@ -4,6 +4,7 @@
 #include "Enemy/Enemy.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 AEnemy::AEnemy()
@@ -25,6 +26,69 @@ void AEnemy::BeginPlay()
 	
 }
 
+void AEnemy::PlayHitReactMontage(const FName& SectionName)
+{
+	if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
+	{
+		if (HitReactMontage)
+		{
+			AnimInstance->Montage_Play(HitReactMontage);
+			AnimInstance->Montage_JumpToSection(SectionName, HitReactMontage);
+		}
+	}
+}
+
+void AEnemy::GetHit(const FVector& ImpactPoint)
+{
+	//DrawDebugSphere(GetWorld(), ImpactPoint, 8.f, 12, FColor::Red, false, 5.f);
+	
+	DirectionalHitReact(ImpactPoint);
+
+	if (HitSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, HitSound, ImpactPoint);
+	}
+
+	if (HitParticles)
+	{
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), HitParticles, ImpactPoint);
+	}
+}
+
+void AEnemy::DirectionalHitReact(const FVector& ImpactPoint)
+{
+	const FVector Foward = GetActorForwardVector();
+	const FVector ImpactLowered(ImpactPoint.X, ImpactPoint.Y, GetActorLocation().Z);
+	const FVector ToHit = (ImpactLowered - GetActorLocation()).GetSafeNormal();
+
+	//Use Dot Product to get theta between two vectors
+	double Theta = FMath::Acos(FVector::DotProduct(Foward, ToHit));
+	Theta = FMath::RadiansToDegrees(Theta);
+
+	//If cross product points down, theta should be negative
+	const FVector CrossProduct = FVector::CrossProduct(Foward, ToHit);
+	if (CrossProduct.Z < 0)
+	{
+		Theta *= -1.f;
+	}
+
+	FName SectionName("FromBack");
+	if (Theta >= -45.f && Theta < 45.f)
+	{
+		SectionName = FName("FromFront");
+	}
+	else if (Theta >= -135.f && Theta < -45.f)
+	{
+		SectionName = FName("FromLeft");
+	}
+	else if (Theta >= 45.f && Theta < 135.f)
+	{
+		SectionName = FName("FromRight");
+	}
+
+	PlayHitReactMontage(SectionName);
+}
+
 // Called every frame
 void AEnemy::Tick(float DeltaTime)
 {
@@ -38,4 +102,3 @@ void AEnemy::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
 }
-
