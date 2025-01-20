@@ -8,6 +8,7 @@
 #include "BreakableActor.generated.h"
 
 class UGeometryCollectionComponent;
+class UCapsuleComponent;
 
 UCLASS()
 class SLASHCOURSE_API ABreakableActor : public AActor, public IHitInterface
@@ -21,7 +22,18 @@ public:
 	virtual void GetHit_Implementation(const FVector& ImpactPoint) override;
 protected:
 	virtual void BeginPlay() override;
-private:
-	UPROPERTY(VisibleAnywhere)
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	UGeometryCollectionComponent* GeometryCollection;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	UCapsuleComponent* Capsule;
+private:
+	UPROPERTY(EditAnywhere)
+	TArray<TSubclassOf<class ATreasure>> TreasureClasses;
+
+	UPROPERTY(EditAnywhere)
+	USoundBase* HitSound;
+
+	bool bBroken = false;
 };
