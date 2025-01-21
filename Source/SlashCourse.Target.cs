@@ -9,7 +9,7 @@ public class SlashCourseTarget : TargetRules
 	{
 		Type = TargetType.Game;
 		DefaultBuildSettings = BuildSettingsVersion.V2;
-
-		ExtraModuleNames.AddRange( new string[] { "SlashCourse" } );
+        IncludeOrderVersion = EngineIncludeOrderVersion.Unreal5_2;
+        ExtraModuleNames.AddRange( new string[] { "SlashCourse" } );
 	}
 }
