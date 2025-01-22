@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Items/Item.h"
+#include "Characters/CharacterTypes.h"
 #include "Weapon.generated.h"
 
 class USoundBase;
@@ -48,7 +49,11 @@ private:
 	USceneComponent* BoxTraceEnd;
 
 	UPROPERTY(EditAnywhere, Category = "Weapon Properties")
+	EWeaponType WeaponType = EWeaponType::EWT_OneHandedMelee;
+
+	UPROPERTY(EditAnywhere, Category = "Weapon Properties")
 	float Damage = 20.f;
 public:
 	FORCEINLINE UBoxComponent* GetWeaponBox() const { return WeaponBox; }
+	FORCEINLINE EWeaponType GetWeaponType() const { return WeaponType; }
 };

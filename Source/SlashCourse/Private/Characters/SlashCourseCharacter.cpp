@@ -92,7 +92,14 @@ void ASlashCourseCharacter::EKeyPressed()
 	if (AWeapon* OverlappingWeapon = Cast<AWeapon>(OverlappingItem))
 	{
 		OverlappingWeapon->Equip(GetMesh(), FName("RightHandSocket"), this, this);
-		CharacterState = ECharacterState::ECS_EquippedOneHandedWeapon;
+		if (OverlappingWeapon->GetWeaponType() == EWeaponType::EWT_OneHandedMelee)
+		{
+			CharacterState = ECharacterState::ECS_EquippedOneHandedWeapon;
+		}
+		else
+		{
+			CharacterState = ECharacterState::ECS_EquippedTwoHandedWeapon;
+		}
 		EquippedWeapon = OverlappingWeapon;
 		OverlappingItem = nullptr;
 	}
@@ -107,7 +114,14 @@ void ASlashCourseCharacter::EKeyPressed()
 		else if (CanArm())
 		{
 			PlayEquipMontage(FName("Equip"));
-			CharacterState = ECharacterState::ECS_EquippedOneHandedWeapon;
+			if (EquippedWeapon->GetWeaponType() == EWeaponType::EWT_OneHandedMelee)
+			{
+				CharacterState = ECharacterState::ECS_EquippedOneHandedWeapon;
+			}
+			else
+			{
+				CharacterState = ECharacterState::ECS_EquippedTwoHandedWeapon;
+			}
 			ActionState = EActionState::EAS_EquippingWeapon;
 		}
 	}
@@ -129,20 +143,29 @@ void ASlashCourseCharacter::PlayAttackMontage()
 	{
 		if (AttackMontage)
 		{
-			AnimInstance->Montage_Play(AttackMontage);
-			const int32 Selection = FMath::RandRange(0, 1);
 			FName SectionName = FName();
-			switch (Selection)
+			AnimInstance->Montage_Play(AttackMontage);
+			
+			if (EquippedWeapon->GetWeaponType() == EWeaponType::EWT_OneHandedMelee)
 			{
-			case 0:
-				SectionName = FName("Attack1");
-				break;
-			case 1:
-				SectionName = FName("Attack2");
-				break;
-			default:
-				break;
+				const int32 Selection = FMath::RandRange(0, 1);
+				switch (Selection)
+				{
+				case 0:
+					SectionName = FName("Attack1");
+					break;
+				case 1:
+					SectionName = FName("Attack2");
+					break;
+				default:
+					break;
+				}
 			}
+			else if (EquippedWeapon->GetWeaponType() == EWeaponType::EWT_TwoHandedMelee)
+			{
+				SectionName = FName("Attack3");
+			}
+			
 			AnimInstance->Montage_JumpToSection(SectionName, AttackMontage);
 		}
 	}

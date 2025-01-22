@@ -25,3 +25,11 @@ enum class EDeathPose : uint8
 	EDP_Dead3 UMETA(DisplayName = "Dead3"),
 	EDP_Dead4 UMETA(DisplayName = "Dead4")
 };
+
+UENUM(BlueprintType)
+enum class EWeaponType : uint8
+{
+	EWT_OneHandedMelee UMETA(DisplayName = "OneHanded Melee"),
+	EWT_TwoHandedMelee UMETA(DisplayName = "TwoHanded Melee"),
+	EWT_TwoHandedRanged UMETA(DisplayName = "TwoHanded Ranged")
+};
