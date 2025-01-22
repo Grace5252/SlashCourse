@@ -33,3 +33,11 @@ enum class EWeaponType : uint8
 	EWT_TwoHandedMelee UMETA(DisplayName = "TwoHanded Melee"),
 	EWT_TwoHandedRanged UMETA(DisplayName = "TwoHanded Ranged")
 };
+
+UENUM(BlueprintType)
+enum class EEnemyState : uint8
+{
+	EES_Patrolling UMETA(DisplayName = "Patrolling"),
+	EES_Chasing UMETA(DisplayName = "Chasing"),
+	EES_Attacking UMETA(DisplayName = "Attacking")
+};

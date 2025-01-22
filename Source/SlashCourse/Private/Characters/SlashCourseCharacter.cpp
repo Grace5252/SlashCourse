@@ -47,6 +47,7 @@ ASlashCourseCharacter::ASlashCourseCharacter()
 void ASlashCourseCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+	Tags.Add(FName("SlashCourseCharacter"));
 
 	if (APlayerController* PlayerController = Cast<APlayerController>(GetController()))
 	{
