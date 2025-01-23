@@ -130,6 +130,8 @@ void ASlashCourseCharacter::EKeyPressed()
 
 void ASlashCourseCharacter::Attack()
 {
+	Super::Attack();
+
 	if (CanAttack())
 	{
 		PlayAttackMontage();
@@ -140,6 +142,8 @@ void ASlashCourseCharacter::Attack()
 
 void ASlashCourseCharacter::PlayAttackMontage()
 {
+	Super::PlayAttackMontage();
+
 	if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
 	{
 		if (AttackMontage)
@@ -202,15 +206,6 @@ void ASlashCourseCharacter::Arm()
 	if (EquippedWeapon)
 	{
 		EquippedWeapon->AttachMeshToSocket(GetMesh(), FName("RightHandSocket"));
-	}
-}
-
-void ASlashCourseCharacter::SetWeaponCollisionEnabled(ECollisionEnabled::Type CollisionEnabled)
-{
-	if (EquippedWeapon && EquippedWeapon->GetWeaponBox())
-	{
-		EquippedWeapon->GetWeaponBox()->SetCollisionEnabled(CollisionEnabled);
-		EquippedWeapon->IgnoreActors.Empty();
 	}
 }
 
