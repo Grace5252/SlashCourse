@@ -19,29 +19,31 @@ class SLASHCOURSE_API AEnemy : public ABaseCharacter
 
 public:
 	AEnemy();
+
+	/** <AActor> */
 	virtual void Tick(float DeltaTime) override;
-	
-	//IHitInterface Functions
-	virtual void GetHit_Implementation(const FVector& ImpactPoint) override;
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
-	
-	//Override for EquippedWeapon Destruction
 	virtual void Destroyed() override;
+	/** <AActor> */
+
+	/** <IHitInterface> */
+	virtual void GetHit_Implementation(const FVector& ImpactPoint) override;
+	/** <IHitInterface> */
+	
 protected:
 	virtual void BeginPlay() override;
 
-	//Overrided ABaseCharacter Functions
+	/** <ABaseCharacter> */
 	virtual void Die() override;
 	virtual bool CanAttack() override;
 	virtual void Attack() override;
-	virtual void PlayAttackMontage() override;
 	virtual void HandleDamage(float DamageAmount) override;
-
-	UFUNCTION()
-	void PawnSeen(APawn* SeenPawn);
+	virtual int32 PlayDeathMontage() override;
+	virtual void AttackEnd() override;
+	/** <ABaseCharacter> */
 
 	UPROPERTY(BlueprintReadOnly)
-	EDeathPose DeathPose;
+	TEnumAsByte<EDeathPose> DeathPose;
 
 	UPROPERTY(BlueprintReadOnly)
 	EEnemyState EnemyState = EEnemyState::EES_Patrolling;
@@ -67,6 +69,9 @@ private:
 	bool InTargetRange(AActor* Target, double Radius);
 	void CheckPatrolTarget();
 	void CheckCombatTarget();
+
+	UFUNCTION()
+	void PawnSeen(APawn* SeenPawn);
 	
 	//Helper Functions
 	void PatrolTimerFinished();
@@ -86,12 +91,14 @@ private:
 	bool IsOutsideAttackRadius();
 	bool IsOutsideCombatRadius();
 
+	void InitializeEnemy();
+	void SpawnDefaultWeapon();
 	void LoseInterest();
 	void HideHealthBar();
 	void ShowHealthBar();
 	
 	/**
-	* AI Navigation and Combat Variables
+	* AI Navigation Variables
 	*/
 	UPROPERTY()
 	AActor* CombatTarget;

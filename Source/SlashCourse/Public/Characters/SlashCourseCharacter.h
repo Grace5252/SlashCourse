@@ -7,7 +7,6 @@
 #include "CharacterTypes.h"
 #include "SlashCourseCharacter.generated.h"
 
-
 class USpringArmComponent;
 class UCameraComponent;
 class UInputMappingContext;
@@ -24,12 +23,44 @@ class SLASHCOURSE_API ASlashCourseCharacter : public ABaseCharacter
 
 public:
 	ASlashCourseCharacter();
-	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 protected:
 	virtual void BeginPlay() override;
 
+	virtual bool CanAttack() override;
+	virtual void AttackEnd() override;
+	void GetHit_Implementation(const FVector& ImpactPoint);
+
+	/* Play Montage Functions */
+	void PlayEquipMontage(const FName& SectionName);
+
+	/* Combat */
+	UFUNCTION(BlueprintCallable)
+	void AttachWeaponToHand();
+	
+	UFUNCTION(BlueprintCallable)
+	void AttachWeaponToBack();
+
+	UFUNCTION(BlueprintCallable)
+	void FinishEquippingWeapon();
+
+	bool CanAttachToBack();
+	bool CanAttachToHand();
+	void Arm();
+	void Disarm();
+
+	//Helper Function for EKeyPressed
+	void EquipWeapon(AWeapon* OverlappingWeapon);
+
+	//Callbacks for Input
+	void Move(const FInputActionValue& Value);
+	void Look(const FInputActionValue& Value);
+	virtual void Jump() override;
+	void EKeyPressed();
+	virtual void Attack() override;
+
+	/* Input Mapping and Action Variables*/
 	UPROPERTY(EditAnywhere, Category = "Input")
 	UInputMappingContext* SlashCharacterMappingContext;
 
@@ -47,35 +78,8 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "Input")
 	UInputAction* AttackAction;
-
-	//Callbacks for Input
-	void Move(const FInputActionValue& Value);
-	void Look(const FInputActionValue& Value);
-	virtual void Jump() override;
-	void EKeyPressed();
-	virtual void Attack() override;
-
-	/**
-	* Play Montage Functions
-	*/
-	virtual void PlayAttackMontage() override;
-	void PlayEquipMontage(const FName& SectionName);
-
-	virtual void AttackEnd() override;
-
-	UFUNCTION(BlueprintCallable)
-	void Disarm();
-
-	UFUNCTION(BlueprintCallable)
-	void Arm();
-
-	UFUNCTION(BlueprintCallable)
-	void FinishEquippingWeapon();
-
-	virtual bool CanAttack() override;
-	bool CanDisarm();
-	bool CanArm();
 private:
+	/* States and Components */
 	ECharacterState CharacterState = ECharacterState::ECS_Unequipped;
 
 	UPROPERTY(BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
@@ -96,13 +100,9 @@ private:
 	UPROPERTY(VisibleInstanceOnly)
 	AItem* OverlappingItem;
 
-
-	/**
-	* Animation Montages
-	*/
+	/* Animation Montages */
 	UPROPERTY(EditDefaultsOnly, Category = "Montages")
 	UAnimMontage* EquipMontage;
-
 public:
 	FORCEINLINE void SetOverlappingItem(AItem* Item) { OverlappingItem = Item; }
 	FORCEINLINE ECharacterState GetCharacterState() const { return CharacterState; }

@@ -19,38 +19,48 @@ class SLASHCOURSE_API ABaseCharacter : public ACharacter, public IHitInterface
 public:
 	ABaseCharacter();
 	virtual void Tick(float DeltaTime) override;
-
-	UFUNCTION(BlueprintCallable)
-	void SetWeaponCollisionEnabled(ECollisionEnabled::Type CollisionEnabled);
-
 protected:
 	virtual void BeginPlay() override;
+	
+	/* Collision Functions */
+	UFUNCTION(BlueprintCallable)
+	void SetWeaponCollisionEnabled(ECollisionEnabled::Type CollisionEnabled);
+	void DisableCapsule();
+
+	/* Combat Functions */
 	virtual void Attack();
 	virtual void Die();
-
+	virtual void HandleDamage(float DamageAmount);
 	UFUNCTION(BlueprintCallable)
 	virtual void AttackEnd();
 	virtual bool CanAttack();
+
+	void DirectionalHitReact(const FVector& ImpactPoint);
 	bool IsAlive();
 
+	/* Montage Play Functions */
+	void PlayHitReactMontage(const FName& SectionName);
+	virtual int32 PlayAttackMontage();
+	virtual int32 PlayDeathMontage();
+	void PlayHitSound(const FVector& ImpactPoint);
+	void SpawnHitParticles(const FVector& ImpactPoint);
+
+
+	/* Variables Needed by Children */
 	UPROPERTY(VisibleAnywhere)
 	UAttributeComponent* Attributes;
 	
 	UPROPERTY(VisibleAnywhere, Category = "Weapon")
 	AWeapon* EquippedWeapon;
+
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	float DeathLifeSpan = 8.f;
+private:
+	/* Montage Play Functions */
+	void PlayMontageSection(UAnimMontage* Montage, const FName& SectionName);
+	int32 PlayRandomMontageSection(UAnimMontage* Montage, const TArray<FName>& SectionNames);
 	
-	/**
-	* Play Montage Functions
-	*/
-	virtual void PlayAttackMontage();
-	void PlayHitReactMontage(const FName& SectionName);
-	void DirectionalHitReact(const FVector& ImpactPoint);
-	void PlayHitSound(const FVector& ImpactPoint);
-	void SpawnHitParticles(const FVector& ImpactPoint);
-	virtual void HandleDamage(float DamageAmount);
-	/**
-	* Animation Montages
-	*/
+	/* Montage and Cosmetic Variables */
 	UPROPERTY(EditDefaultsOnly, Category = "Montages")
 	UAnimMontage* AttackMontage;
 
@@ -59,9 +69,13 @@ protected:
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Montages")
 	UAnimMontage* DeathMontage;
-	
-	
-private:
+
+	UPROPERTY(EditAnywhere, Category = "Montages")
+	TArray<FName> AttackMontageSections;
+
+	UPROPERTY(EditAnywhere, Category = "Montages")
+	TArray<FName> DeathMontageSections;
+
 	UPROPERTY(EditAnywhere, Category = "Sounds")
 	USoundBase* HitSound;
 

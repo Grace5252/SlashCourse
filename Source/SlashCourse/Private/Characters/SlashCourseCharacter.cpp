@@ -1,11 +1,10 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
 #include "Characters/SlashCourseCharacter.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Components/InputComponent.h"
-#include "Components/BoxComponent.h"
+#include "Components/StaticMeshComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -14,11 +13,9 @@
 #include "Items/Weapons/Weapon.h"
 #include "Animation/AnimMontage.h"
 
-// Sets default values
 ASlashCourseCharacter::ASlashCourseCharacter()
 {
- 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
@@ -26,6 +23,12 @@ ASlashCourseCharacter::ASlashCourseCharacter()
 
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	GetCharacterMovement()->RotationRate = FRotator(0.f, 400.f, 0.f);
+
+	GetMesh()->SetCollisionObjectType(ECollisionChannel::ECC_WorldDynamic);
+	GetMesh()->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
+	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldDynamic, ECollisionResponse::ECR_Overlap);
+	GetMesh()->SetGenerateOverlapEvents(true);
 
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArm->SetupAttachment(RootComponent);
@@ -43,11 +46,10 @@ ASlashCourseCharacter::ASlashCourseCharacter()
 	Eyebrows->AttachmentName = FString("head");
 }
 
-// Called when the game starts or when spawned
 void ASlashCourseCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	Tags.Add(FName("SlashCourseCharacter"));
+	Tags.Add(FName("EngageableTarget"));
 
 	if (APlayerController* PlayerController = Cast<APlayerController>(GetController()))
 	{
@@ -56,6 +58,103 @@ void ASlashCourseCharacter::BeginPlay()
 			Subsystem->AddMappingContext(SlashCharacterMappingContext, 0);
 		}
 	}
+}
+
+bool ASlashCourseCharacter::CanAttack()
+{
+	return ActionState == EActionState::EAS_Unoccupied && CharacterState != ECharacterState::ECS_Unequipped;
+}
+
+void ASlashCourseCharacter::AttackEnd()
+{
+	ActionState = EActionState::EAS_Unoccupied;
+}
+
+void ASlashCourseCharacter::GetHit_Implementation(const FVector& ImpactPoint)
+{
+	PlayHitSound(ImpactPoint);
+	SpawnHitParticles(ImpactPoint);
+}
+
+void ASlashCourseCharacter::PlayEquipMontage(const FName& SectionName)
+{
+	if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
+	{
+		if (EquipMontage)
+		{
+			AnimInstance->Montage_Play(EquipMontage);
+			AnimInstance->Montage_JumpToSection(SectionName, EquipMontage);
+		}
+	}
+}
+
+void ASlashCourseCharacter::AttachWeaponToHand()
+{
+	if (EquippedWeapon)
+	{
+		EquippedWeapon->AttachMeshToSocket(GetMesh(), FName("RightHandSocket"));
+	}
+}
+
+void ASlashCourseCharacter::AttachWeaponToBack()
+{
+	if (EquippedWeapon)
+	{
+		EquippedWeapon->AttachMeshToSocket(GetMesh(), FName("SpineSocket"));
+	}
+}
+
+void ASlashCourseCharacter::FinishEquippingWeapon()
+{
+	ActionState = EActionState::EAS_Unoccupied;
+}
+
+bool ASlashCourseCharacter::CanAttachToBack()
+{
+	return ActionState == EActionState::EAS_Unoccupied && CharacterState != ECharacterState::ECS_Unequipped;
+}
+
+bool ASlashCourseCharacter::CanAttachToHand()
+{
+	return ActionState == EActionState::EAS_Unoccupied && CharacterState == ECharacterState::ECS_Unequipped && EquippedWeapon;
+}
+
+void ASlashCourseCharacter::Arm()
+{
+	PlayEquipMontage(FName("Equip"));
+	if (EquippedWeapon->GetWeaponType() == EWeaponType::EWT_OneHandedMelee)
+	{
+		CharacterState = ECharacterState::ECS_EquippedOneHandedWeapon;
+	}
+	else
+	{
+		CharacterState = ECharacterState::ECS_EquippedTwoHandedWeapon;
+	}
+	ActionState = EActionState::EAS_EquippingWeapon;
+}
+
+void ASlashCourseCharacter::Disarm()
+{
+	PlayEquipMontage(FName("Unequip"));
+	CharacterState = ECharacterState::ECS_Unequipped;
+	ActionState = EActionState::EAS_EquippingWeapon;
+}
+
+void ASlashCourseCharacter::EquipWeapon(AWeapon* OverlappingWeapon)
+{
+	OverlappingWeapon->Equip(GetMesh(), FName("RightHandSocket"), this, this);
+
+	if (OverlappingWeapon->GetWeaponType() == EWeaponType::EWT_OneHandedMelee)
+	{
+		CharacterState = ECharacterState::ECS_EquippedOneHandedWeapon;
+	}
+	else
+	{
+		CharacterState = ECharacterState::ECS_EquippedTwoHandedWeapon;
+	}
+
+	EquippedWeapon = OverlappingWeapon;
+	OverlappingItem = nullptr;
 }
 
 void ASlashCourseCharacter::Move(const FInputActionValue& Value)
@@ -92,38 +191,17 @@ void ASlashCourseCharacter::EKeyPressed()
 {
 	if (AWeapon* OverlappingWeapon = Cast<AWeapon>(OverlappingItem))
 	{
-		OverlappingWeapon->Equip(GetMesh(), FName("RightHandSocket"), this, this);
-		if (OverlappingWeapon->GetWeaponType() == EWeaponType::EWT_OneHandedMelee)
-		{
-			CharacterState = ECharacterState::ECS_EquippedOneHandedWeapon;
-		}
-		else
-		{
-			CharacterState = ECharacterState::ECS_EquippedTwoHandedWeapon;
-		}
-		EquippedWeapon = OverlappingWeapon;
-		OverlappingItem = nullptr;
+		EquipWeapon(OverlappingWeapon);
 	}
 	else
 	{
-		if (CanDisarm())
+		if (CanAttachToBack())
 		{
-			PlayEquipMontage(FName("Unequip"));
-			CharacterState = ECharacterState::ECS_Unequipped;
-			ActionState = EActionState::EAS_EquippingWeapon;
+			Disarm();
 		}
-		else if (CanArm())
+		else if (CanAttachToHand())
 		{
-			PlayEquipMontage(FName("Equip"));
-			if (EquippedWeapon->GetWeaponType() == EWeaponType::EWT_OneHandedMelee)
-			{
-				CharacterState = ECharacterState::ECS_EquippedOneHandedWeapon;
-			}
-			else
-			{
-				CharacterState = ECharacterState::ECS_EquippedTwoHandedWeapon;
-			}
-			ActionState = EActionState::EAS_EquippingWeapon;
+			Arm();
 		}
 	}
 }
@@ -137,103 +215,6 @@ void ASlashCourseCharacter::Attack()
 		PlayAttackMontage();
 		ActionState = EActionState::EAS_Attacking;
 	}
-	
-}
-
-void ASlashCourseCharacter::PlayAttackMontage()
-{
-	Super::PlayAttackMontage();
-
-	if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
-	{
-		if (AttackMontage)
-		{
-			FName SectionName = FName();
-			AnimInstance->Montage_Play(AttackMontage);
-			
-			if (EquippedWeapon->GetWeaponType() == EWeaponType::EWT_OneHandedMelee)
-			{
-				const int32 Selection = FMath::RandRange(0, 1);
-				switch (Selection)
-				{
-				case 0:
-					SectionName = FName("Attack1");
-					break;
-				case 1:
-					SectionName = FName("Attack2");
-					break;
-				default:
-					break;
-				}
-			}
-			else if (EquippedWeapon->GetWeaponType() == EWeaponType::EWT_TwoHandedMelee)
-			{
-				SectionName = FName("Attack3");
-			}
-			
-			AnimInstance->Montage_JumpToSection(SectionName, AttackMontage);
-		}
-	}
-}
-
-void ASlashCourseCharacter::PlayEquipMontage(const FName& SectionName)
-{
-	if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
-	{
-		if (EquipMontage)
-		{
-			AnimInstance->Montage_Play(EquipMontage);
-			AnimInstance->Montage_JumpToSection(SectionName, EquipMontage);
-		}
-	}
-}
-
-void ASlashCourseCharacter::AttackEnd()
-{
-	ActionState = EActionState::EAS_Unoccupied;
-}
-
-void ASlashCourseCharacter::Disarm()
-{
-	if (EquippedWeapon)
-	{
-		EquippedWeapon->AttachMeshToSocket(GetMesh(), FName("SpineSocket"));
-	}
-}
-
-void ASlashCourseCharacter::Arm()
-{
-	if (EquippedWeapon)
-	{
-		EquippedWeapon->AttachMeshToSocket(GetMesh(), FName("RightHandSocket"));
-	}
-}
-
-void ASlashCourseCharacter::FinishEquippingWeapon()
-{
-	ActionState = EActionState::EAS_Unoccupied;
-}
-
-bool ASlashCourseCharacter::CanAttack()
-{
-	return ActionState == EActionState::EAS_Unoccupied && CharacterState != ECharacterState::ECS_Unequipped;
-}
-
-bool ASlashCourseCharacter::CanDisarm()
-{
-	return ActionState == EActionState::EAS_Unoccupied && CharacterState != ECharacterState::ECS_Unequipped;
-}
-
-bool ASlashCourseCharacter::CanArm()
-{
-	return ActionState == EActionState::EAS_Unoccupied && CharacterState == ECharacterState::ECS_Unequipped && EquippedWeapon;
-}
-
-// Called every frame
-void ASlashCourseCharacter::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
 }
 
 // Called to bind functionality to input
