@@ -97,9 +97,10 @@ void AEnemy::Destroyed()
 
 void AEnemy::Die()
 {
+	Super::Die();
+
 	EnemyState = EEnemyState::EES_Dead;
 	ClearAttackTimer();
-	PlayDeathMontage();
 	HideHealthBar();
 	DisableCapsule();
 	SetLifeSpan(DeathLifeSpan);
@@ -114,8 +115,10 @@ bool AEnemy::CanAttack()
 
 void AEnemy::Attack()
 {
-	EnemyState = EEnemyState::EES_Engaged;
 	Super::Attack();
+	if (CombatTarget == nullptr) return;
+
+	EnemyState = EEnemyState::EES_Engaged;
 	PlayAttackMontage();
 }
 
@@ -128,24 +131,11 @@ void AEnemy::HandleDamage(float DamageAmount)
 	}
 }
 
-int32 AEnemy::PlayDeathMontage()
-{
-	const int32 Selection = Super::PlayDeathMontage();
-	TEnumAsByte<EDeathPose> Pose(Selection);
-	if (Pose < EDeathPose::EDP_MAX)
-	{
-		DeathPose = Pose;
-	}
-	return Selection;
-}
-
 void AEnemy::AttackEnd()
 {
 	EnemyState = EEnemyState::EES_NoState; //RESET STATE
 	CheckCombatTarget(); //Set New State
 }
-
-
 
 void AEnemy::MoveToTarget(AActor* Target)
 {
@@ -183,8 +173,6 @@ bool AEnemy::InTargetRange(AActor* Target, double Radius)
 	const double DistanceToTarget = (Target->GetActorLocation() - GetActorLocation()).Size();
 	return DistanceToTarget <= Radius;
 }
-
-
 
 void AEnemy::CheckPatrolTarget()
 {
@@ -224,6 +212,8 @@ void AEnemy::CheckCombatTarget()
 
 void AEnemy::PawnSeen(APawn* SeenPawn)
 {
+	if (SeenPawn->ActorHasTag(FName("Dead"))) return;
+
 	const bool bShouldChaseTarget = 
 		EnemyState != EEnemyState::EES_Dead
 		&& EnemyState != EEnemyState::EES_Chasing

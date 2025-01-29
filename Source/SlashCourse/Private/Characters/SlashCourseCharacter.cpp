@@ -5,13 +5,16 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Components/InputComponent.h"
 #include "Components/StaticMeshComponent.h"
+#include "Components/AttributeComponent.h"
+#include "GroomComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "GroomComponent.h"
 #include "Items/Item.h"
 #include "Items/Weapons/Weapon.h"
 #include "Animation/AnimMontage.h"
+#include "HUD/SlashCourseHUD.h"
+#include "HUD/SlashCourseOverlay.h"
 
 ASlashCourseCharacter::ASlashCourseCharacter()
 {
@@ -53,11 +56,45 @@ void ASlashCourseCharacter::BeginPlay()
 
 	if (APlayerController* PlayerController = Cast<APlayerController>(GetController()))
 	{
+		InitializeSlashCourseOverlay(PlayerController);
+
 		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
 		{
 			Subsystem->AddMappingContext(SlashCharacterMappingContext, 0);
 		}
 	}
+}
+
+// Called to bind functionality to input
+void ASlashCourseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+{
+	Super::SetupPlayerInputComponent(PlayerInputComponent);
+
+	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent))
+	{
+		EnhancedInputComponent->BindAction(MovementAction, ETriggerEvent::Triggered, this, &ASlashCourseCharacter::Move);
+		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ASlashCourseCharacter::Look);
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ASlashCourseCharacter::Jump);
+		EnhancedInputComponent->BindAction(EquipAction, ETriggerEvent::Triggered, this, &ASlashCourseCharacter::EKeyPressed);
+		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Triggered, this, &ASlashCourseCharacter::Attack);
+	}
+}
+
+float ASlashCourseCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+{
+	HandleDamage(DamageAmount);
+	SetHUDHealth();
+	return DamageAmount;
+}
+
+void ASlashCourseCharacter::GetHit_Implementation(const FVector& ImpactPoint, AActor* Hitter)
+{
+	Super::GetHit_Implementation(ImpactPoint, Hitter);
+	if (Attributes && Attributes->IsAlive())
+	{
+		ActionState = EActionState::EAS_HitReaction;
+	}
+	SetWeaponCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
 bool ASlashCourseCharacter::CanAttack()
@@ -70,11 +107,12 @@ void ASlashCourseCharacter::AttackEnd()
 	ActionState = EActionState::EAS_Unoccupied;
 }
 
-void ASlashCourseCharacter::GetHit_Implementation(const FVector& ImpactPoint, AActor* Hitter)
+void ASlashCourseCharacter::Die()
 {
-	Super::GetHit_Implementation(ImpactPoint, Hitter);
-	ActionState = EActionState::EAS_HitReaction;
-	SetWeaponCollisionEnabled(ECollisionEnabled::NoCollision);
+	Super::Die();
+	ActionState = EActionState::EAS_Dead;
+
+	DisableMeshCollision();
 }
 
 void ASlashCourseCharacter::PlayEquipMontage(const FName& SectionName)
@@ -190,7 +228,10 @@ void ASlashCourseCharacter::Look(const FInputActionValue& Value)
 
 void ASlashCourseCharacter::Jump()
 {
-	Super::Jump();
+	if (IsUnoccupied())
+	{
+		Super::Jump();
+	}
 }
 
 void ASlashCourseCharacter::EKeyPressed()
@@ -223,19 +264,30 @@ void ASlashCourseCharacter::Attack()
 	}
 }
 
-// Called to bind functionality to input
-void ASlashCourseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+void ASlashCourseCharacter::InitializeSlashCourseOverlay(APlayerController* PlayerController)
 {
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
-	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent))
+	if (ASlashCourseHUD* SlashCourseHUD = Cast<ASlashCourseHUD>(PlayerController->GetHUD()))
 	{
-		EnhancedInputComponent->BindAction(MovementAction, ETriggerEvent::Triggered, this, &ASlashCourseCharacter::Move);
-		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ASlashCourseCharacter::Look);
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ASlashCourseCharacter::Jump);
-		EnhancedInputComponent->BindAction(EquipAction, ETriggerEvent::Triggered, this, &ASlashCourseCharacter::EKeyPressed);
-		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Triggered, this, &ASlashCourseCharacter::Attack);
+		SlashCourseOverlay = SlashCourseHUD->GetSlashCourseOverlay();
+		if (SlashCourseOverlay && Attributes)
+		{
+			SlashCourseOverlay->SetHealthBarPercent(Attributes->GetHealthPercent());
+			SlashCourseOverlay->SetStaminaBarPercent(1.0f);
+			SlashCourseOverlay->SetCoinCount(0);
+			SlashCourseOverlay->SetSoulCount(0);
+		}
 	}
 }
 
+void ASlashCourseCharacter::SetHUDHealth()
+{
+	if (SlashCourseOverlay && Attributes)
+	{
+		SlashCourseOverlay->SetHealthBarPercent(Attributes->GetHealthPercent());
+	}
+}
 
+bool ASlashCourseCharacter::IsUnoccupied()
+{
+	return ActionState == EActionState::EAS_Unoccupied;
+}

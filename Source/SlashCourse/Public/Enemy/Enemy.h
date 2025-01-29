@@ -38,12 +38,8 @@ protected:
 	virtual bool CanAttack() override;
 	virtual void Attack() override;
 	virtual void HandleDamage(float DamageAmount) override;
-	virtual int32 PlayDeathMontage() override;
 	virtual void AttackEnd() override;
 	/** <ABaseCharacter> */
-
-	UPROPERTY(BlueprintReadOnly)
-	TEnumAsByte<EDeathPose> DeathPose;
 
 	UPROPERTY(BlueprintReadOnly)
 	EEnemyState EnemyState = EEnemyState::EES_Patrolling;
@@ -104,7 +100,7 @@ private:
 	double CombatRadius = 1000.f;
 
 	UPROPERTY(EditAnywhere, Category = "AI Navigation")
-	double AttackRadius = 150.f;
+	double AttackRadius = 200.f;
 
 	UPROPERTY(EditAnywhere, Category = "AI Navigation")
 	double PatrolRadius = 200.f;

@@ -15,6 +15,7 @@ class UGroomComponent;
 struct FInputActionValue;
 class AItem;
 class UAnimMontage;
+class USlashCourseOverlay;
 
 UCLASS()
 class SLASHCOURSE_API ASlashCourseCharacter : public ABaseCharacter
@@ -24,13 +25,17 @@ class SLASHCOURSE_API ASlashCourseCharacter : public ABaseCharacter
 public:
 	ASlashCourseCharacter();
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
 
+	/** <IHitInterface> */
+	virtual void GetHit_Implementation(const FVector& ImpactPoint, AActor* Hitter) override;
+	/** <IHitInterface> */
 protected:
 	virtual void BeginPlay() override;
-
+	
 	virtual bool CanAttack() override;
 	virtual void AttackEnd() override;
-	void GetHit_Implementation(const FVector& ImpactPoint, AActor* Hitter) override;
+	virtual void Die() override;
 
 	/* Play Montage Functions */
 	void PlayEquipMontage(const FName& SectionName);
@@ -52,7 +57,7 @@ protected:
 	bool CanAttachToHand();
 	void Arm();
 	void Disarm();
-
+	
 	//Helper Function for EKeyPressed
 	void EquipWeapon(AWeapon* OverlappingWeapon);
 
@@ -82,6 +87,16 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Input")
 	UInputAction* AttackAction;
 private:
+	/* Overlay */
+	void InitializeSlashCourseOverlay(APlayerController* PlayerController);
+	void SetHUDHealth();
+
+	/* Helper Functions */
+	bool IsUnoccupied();
+
+	UPROPERTY()
+	USlashCourseOverlay* SlashCourseOverlay;
+
 	/* States and Components */
 	ECharacterState CharacterState = ECharacterState::ECS_Unequipped;
 
@@ -109,4 +124,5 @@ private:
 public:
 	FORCEINLINE void SetOverlappingItem(AItem* Item) { OverlappingItem = Item; }
 	FORCEINLINE ECharacterState GetCharacterState() const { return CharacterState; }
+	FORCEINLINE EActionState GetActionState() const { return ActionState; }
 };

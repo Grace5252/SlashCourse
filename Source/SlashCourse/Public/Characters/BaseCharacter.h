@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Interfaces/HitInterface.h"
+#include "Characters/CharacterTypes.h"
 #include "BaseCharacter.generated.h"
 
 class AWeapon;
@@ -37,6 +38,7 @@ protected:
 	virtual bool CanAttack();
 
 	void DirectionalHitReact(const FVector& ImpactPoint);
+	void DisableMeshCollision();
 	bool IsAlive();
 
 	/* Montage Play Functions */
@@ -62,6 +64,9 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly, Category = "Combat")
 	AActor* CombatTarget;
+
+	UPROPERTY(BlueprintReadOnly)
+	TEnumAsByte<EDeathPose> DeathPose;
 
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	float DeathLifeSpan = 8.f;
@@ -94,4 +99,6 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "Visual Effects")
 	UParticleSystem* HitParticles;
+public:
+	FORCEINLINE TEnumAsByte<EDeathPose> GetDeathPose() const { return DeathPose; }
 };
