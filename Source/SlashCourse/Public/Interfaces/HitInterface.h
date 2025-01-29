@@ -24,5 +24,5 @@ class SLASHCOURSE_API IHitInterface
 public:
 	//Overridable by blueprint 
 	UFUNCTION(BlueprintNativeEvent)
-	void GetHit(const FVector& ImpactPoint);
+	void GetHit(const FVector& ImpactPoint, AActor* Hitter);
 };

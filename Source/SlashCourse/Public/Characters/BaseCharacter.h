@@ -28,6 +28,7 @@ protected:
 	void DisableCapsule();
 
 	/* Combat Functions */
+	virtual void GetHit_Implementation(const FVector& ImpactPoint, AActor* Hitter) override;
 	virtual void Attack();
 	virtual void Die();
 	virtual void HandleDamage(float DamageAmount);
@@ -44,7 +45,13 @@ protected:
 	virtual int32 PlayDeathMontage();
 	void PlayHitSound(const FVector& ImpactPoint);
 	void SpawnHitParticles(const FVector& ImpactPoint);
+	void StopAttackMontage();
 
+	UFUNCTION(BlueprintCallable)
+	FVector GetTranslationWarpTarget();
+	
+	UFUNCTION(BlueprintCallable)
+	FVector GetRotationWarpTarget();
 
 	/* Variables Needed by Children */
 	UPROPERTY(VisibleAnywhere)
@@ -53,8 +60,14 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "Weapon")
 	AWeapon* EquippedWeapon;
 
+	UPROPERTY(BlueprintReadOnly, Category = "Combat")
+	AActor* CombatTarget;
+
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	float DeathLifeSpan = 8.f;
+
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	double WarpTargetDistance = 75.f;
 private:
 	/* Montage Play Functions */
 	void PlayMontageSection(UAnimMontage* Montage, const FName& SectionName);

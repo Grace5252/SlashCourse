@@ -70,10 +70,11 @@ void ASlashCourseCharacter::AttackEnd()
 	ActionState = EActionState::EAS_Unoccupied;
 }
 
-void ASlashCourseCharacter::GetHit_Implementation(const FVector& ImpactPoint)
+void ASlashCourseCharacter::GetHit_Implementation(const FVector& ImpactPoint, AActor* Hitter)
 {
-	PlayHitSound(ImpactPoint);
-	SpawnHitParticles(ImpactPoint);
+	Super::GetHit_Implementation(ImpactPoint, Hitter);
+	ActionState = EActionState::EAS_HitReaction;
+	SetWeaponCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
 void ASlashCourseCharacter::PlayEquipMontage(const FName& SectionName)
@@ -105,6 +106,11 @@ void ASlashCourseCharacter::AttachWeaponToBack()
 }
 
 void ASlashCourseCharacter::FinishEquippingWeapon()
+{
+	ActionState = EActionState::EAS_Unoccupied;
+}
+
+void ASlashCourseCharacter::HitReactEnd()
 {
 	ActionState = EActionState::EAS_Unoccupied;
 }

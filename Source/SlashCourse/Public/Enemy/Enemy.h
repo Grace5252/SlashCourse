@@ -27,7 +27,7 @@ public:
 	/** <AActor> */
 
 	/** <IHitInterface> */
-	virtual void GetHit_Implementation(const FVector& ImpactPoint) override;
+	virtual void GetHit_Implementation(const FVector& ImpactPoint, AActor* Hitter) override;
 	/** <IHitInterface> */
 	
 protected:
@@ -100,9 +100,6 @@ private:
 	/**
 	* AI Navigation Variables
 	*/
-	UPROPERTY()
-	AActor* CombatTarget;
-
 	UPROPERTY(EditAnywhere, Category = "AI Navigation")
 	double CombatRadius = 1000.f;
 
@@ -120,10 +117,10 @@ private:
 
 	FTimerHandle AttackTimer;
 	
-	UPROPERTY(EditAnywhere, Category = "AI Navigation")
+	UPROPERTY(EditAnywhere, Category = "Combat")
 	float AttackTimeMin = 0.5f;
 
-	UPROPERTY(EditAnywhere, Category = "AI Navigation")
+	UPROPERTY(EditAnywhere, Category = "Combat")
 	float AttackTimeMax = 1.0f;
 
 	FTimerHandle PatrolTimer;

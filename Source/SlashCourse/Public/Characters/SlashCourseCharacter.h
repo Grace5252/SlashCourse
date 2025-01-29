@@ -30,7 +30,7 @@ protected:
 
 	virtual bool CanAttack() override;
 	virtual void AttackEnd() override;
-	void GetHit_Implementation(const FVector& ImpactPoint);
+	void GetHit_Implementation(const FVector& ImpactPoint, AActor* Hitter) override;
 
 	/* Play Montage Functions */
 	void PlayEquipMontage(const FName& SectionName);
@@ -44,6 +44,9 @@ protected:
 
 	UFUNCTION(BlueprintCallable)
 	void FinishEquippingWeapon();
+
+	UFUNCTION(BlueprintCallable)
+	void HitReactEnd();
 
 	bool CanAttachToBack();
 	bool CanAttachToHand();
