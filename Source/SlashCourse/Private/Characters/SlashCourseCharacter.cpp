@@ -11,6 +11,8 @@
 #include "EnhancedInputSubsystems.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Items/Item.h"
+#include "Items/Soul.h"
+#include "Items/Treasure.h"
 #include "Items/Weapons/Weapon.h"
 #include "Animation/AnimMontage.h"
 #include "HUD/SlashCourseHUD.h"
@@ -47,6 +49,29 @@ ASlashCourseCharacter::ASlashCourseCharacter()
 	Eyebrows = CreateDefaultSubobject<UGroomComponent>(TEXT("Eyebrows"));
 	Eyebrows->SetupAttachment(GetMesh());
 	Eyebrows->AttachmentName = FString("head");
+}
+
+void ASlashCourseCharacter::SetOverlappingItem(AItem* Item)
+{
+	OverlappingItem = Item;
+}
+
+void ASlashCourseCharacter::AddSouls(ASoul* Soul)
+{
+	if (Attributes && SlashCourseOverlay)
+	{
+		Attributes->AddSouls(Soul->GetSouls());
+		SlashCourseOverlay->SetSoulCount(Attributes->GetSouls());
+	}
+}
+
+void ASlashCourseCharacter::AddGold(ATreasure* Treasure)
+{
+	if (Attributes)
+	{
+		Attributes->AddGold(Treasure->GetGold());
+		SlashCourseOverlay->SetCoinCount(Attributes->GetGold());
+	}
 }
 
 void ASlashCourseCharacter::BeginPlay()

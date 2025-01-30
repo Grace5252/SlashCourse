@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "BaseCharacter.h"
 #include "CharacterTypes.h"
+#include "Interfaces/PickupInterface.h"
 #include "SlashCourseCharacter.generated.h"
 
 class USpringArmComponent;
@@ -14,11 +15,13 @@ class UInputAction;
 class UGroomComponent;
 struct FInputActionValue;
 class AItem;
+class ASoul;
+class ATreasure;
 class UAnimMontage;
 class USlashCourseOverlay;
 
 UCLASS()
-class SLASHCOURSE_API ASlashCourseCharacter : public ABaseCharacter
+class SLASHCOURSE_API ASlashCourseCharacter : public ABaseCharacter, public IPickupInterface
 {
 	GENERATED_BODY()
 
@@ -30,6 +33,12 @@ public:
 	/** <IHitInterface> */
 	virtual void GetHit_Implementation(const FVector& ImpactPoint, AActor* Hitter) override;
 	/** <IHitInterface> */
+
+	/** <IPickupInterface>*/
+	virtual void SetOverlappingItem(AItem* Item) override;
+	virtual void AddSouls(ASoul* Soul) override;
+	virtual void AddGold(ATreasure* Treasure) override;
+	/** <IPickupInterface>*/
 protected:
 	virtual void BeginPlay() override;
 	
@@ -122,7 +131,6 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Montages")
 	UAnimMontage* EquipMontage;
 public:
-	FORCEINLINE void SetOverlappingItem(AItem* Item) { OverlappingItem = Item; }
 	FORCEINLINE ECharacterState GetCharacterState() const { return CharacterState; }
 	FORCEINLINE EActionState GetActionState() const { return ActionState; }
 };
