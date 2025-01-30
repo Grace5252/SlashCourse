@@ -28,6 +28,7 @@ class SLASHCOURSE_API ASlashCourseCharacter : public ABaseCharacter, public IPic
 public:
 	ASlashCourseCharacter();
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	virtual void Tick(float DeltaTime) override;
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
 
 	/** <IHitInterface> */
@@ -44,6 +45,7 @@ protected:
 	
 	virtual bool CanAttack() override;
 	virtual void AttackEnd() override;
+	virtual void DodgeEnd() override;
 	virtual void Die() override;
 
 	/* Play Montage Functions */
@@ -76,6 +78,9 @@ protected:
 	virtual void Jump() override;
 	void EKeyPressed();
 	virtual void Attack() override;
+	void Dodge();
+
+	
 
 	/* Input Mapping and Action Variables*/
 	UPROPERTY(EditAnywhere, Category = "Input")
@@ -95,14 +100,19 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "Input")
 	UInputAction* AttackAction;
+
+	UPROPERTY(EditAnywhere, Category = "Input")
+	UInputAction* DodgeAction;
 private:
 	/* Overlay */
 	void InitializeSlashCourseOverlay(APlayerController* PlayerController);
 	void SetHUDHealth();
 
 	/* Helper Functions */
+	bool IsOccupied();
 	bool IsUnoccupied();
-
+	bool HasEnoughStamina();
+	
 	UPROPERTY()
 	USlashCourseOverlay* SlashCourseOverlay;
 

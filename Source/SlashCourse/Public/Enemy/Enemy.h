@@ -11,6 +11,7 @@ class UHealthBarComponent;
 class UPawnSensingComponent;
 class AAIController;
 class AWeapon;
+class ASoul;
 
 UCLASS()
 class SLASHCOURSE_API AEnemy : public ABaseCharacter
@@ -89,6 +90,7 @@ private:
 
 	void InitializeEnemy();
 	void SpawnDefaultWeapon();
+	void SpawnSoul();
 	void LoseInterest();
 	void HideHealthBar();
 	void ShowHealthBar();
@@ -118,6 +120,9 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	float AttackTimeMax = 1.0f;
+
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	TSubclassOf<ASoul> SoulClass;
 
 	FTimerHandle PatrolTimer;
 

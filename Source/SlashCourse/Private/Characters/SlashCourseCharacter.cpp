@@ -20,7 +20,7 @@
 
 ASlashCourseCharacter::ASlashCourseCharacter()
 {
-	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bCanEverTick = true;
 
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
@@ -102,6 +102,18 @@ void ASlashCourseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInp
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ASlashCourseCharacter::Jump);
 		EnhancedInputComponent->BindAction(EquipAction, ETriggerEvent::Triggered, this, &ASlashCourseCharacter::EKeyPressed);
 		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Triggered, this, &ASlashCourseCharacter::Attack);
+		EnhancedInputComponent->BindAction(DodgeAction, ETriggerEvent::Triggered, this, &ASlashCourseCharacter::Dodge);
+	}
+}
+
+void ASlashCourseCharacter::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	if (Attributes && SlashCourseOverlay)
+	{
+		Attributes->RegenStamina(DeltaTime);
+		SlashCourseOverlay->SetStaminaBarPercent(Attributes->GetStaminaPercent());
 	}
 }
 
@@ -129,6 +141,12 @@ bool ASlashCourseCharacter::CanAttack()
 
 void ASlashCourseCharacter::AttackEnd()
 {
+	ActionState = EActionState::EAS_Unoccupied;
+}
+
+void ASlashCourseCharacter::DodgeEnd()
+{
+	Super::DodgeEnd();
 	ActionState = EActionState::EAS_Unoccupied;
 }
 
@@ -289,6 +307,21 @@ void ASlashCourseCharacter::Attack()
 	}
 }
 
+void ASlashCourseCharacter::Dodge()
+{
+	if (IsOccupied() || !HasEnoughStamina()) return;
+	
+	PlayDodgeMontage();
+	ActionState = EActionState::EAS_Dodging;
+	if (Attributes && SlashCourseOverlay)
+	{
+		Attributes->UseStamina(Attributes->GetDodgeCost());
+		SlashCourseOverlay->SetStaminaBarPercent(Attributes->GetStaminaPercent());
+	}
+}
+
+
+
 void ASlashCourseCharacter::InitializeSlashCourseOverlay(APlayerController* PlayerController)
 {
 	if (ASlashCourseHUD* SlashCourseHUD = Cast<ASlashCourseHUD>(PlayerController->GetHUD()))
@@ -297,7 +330,7 @@ void ASlashCourseCharacter::InitializeSlashCourseOverlay(APlayerController* Play
 		if (SlashCourseOverlay && Attributes)
 		{
 			SlashCourseOverlay->SetHealthBarPercent(Attributes->GetHealthPercent());
-			SlashCourseOverlay->SetStaminaBarPercent(1.0f);
+			SlashCourseOverlay->SetStaminaBarPercent(Attributes->GetStaminaPercent());
 			SlashCourseOverlay->SetCoinCount(0);
 			SlashCourseOverlay->SetSoulCount(0);
 		}
@@ -312,7 +345,17 @@ void ASlashCourseCharacter::SetHUDHealth()
 	}
 }
 
+bool ASlashCourseCharacter::IsOccupied()
+{
+	return ActionState != EActionState::EAS_Unoccupied;
+}
+
 bool ASlashCourseCharacter::IsUnoccupied()
 {
 	return ActionState == EActionState::EAS_Unoccupied;
+}
+
+bool ASlashCourseCharacter::HasEnoughStamina()
+{
+	return Attributes && Attributes->GetCurrentStamina() > Attributes->GetDodgeCost();
 }

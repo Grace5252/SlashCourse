@@ -35,6 +35,8 @@ protected:
 	virtual void HandleDamage(float DamageAmount);
 	UFUNCTION(BlueprintCallable)
 	virtual void AttackEnd();
+	UFUNCTION(BlueprintCallable)
+	virtual void DodgeEnd();
 	virtual bool CanAttack();
 
 	void DirectionalHitReact(const FVector& ImpactPoint);
@@ -45,6 +47,7 @@ protected:
 	void PlayHitReactMontage(const FName& SectionName);
 	virtual int32 PlayAttackMontage();
 	virtual int32 PlayDeathMontage();
+	virtual void PlayDodgeMontage();
 	void PlayHitSound(const FVector& ImpactPoint);
 	void SpawnHitParticles(const FVector& ImpactPoint);
 	void StopAttackMontage();
@@ -87,6 +90,9 @@ private:
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Montages")
 	UAnimMontage* DeathMontage;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Montages")
+	UAnimMontage* DodgeMontage;
 
 	UPROPERTY(EditAnywhere, Category = "Montages")
 	TArray<FName> AttackMontageSections;

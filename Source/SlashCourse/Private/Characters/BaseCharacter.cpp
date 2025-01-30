@@ -80,6 +80,10 @@ void ABaseCharacter::AttackEnd()
 {
 }
 
+void ABaseCharacter::DodgeEnd()
+{
+}
+
 bool ABaseCharacter::CanAttack()
 {
 	return false;
@@ -176,6 +180,11 @@ int32 ABaseCharacter::PlayDeathMontage()
 		DeathPose = Pose;
 	}
 	return Selection;
+}
+
+void ABaseCharacter::PlayDodgeMontage()
+{
+	PlayMontageSection(DodgeMontage, FName("Default"));
 }
 
 void ABaseCharacter::PlayHitSound(const FVector& ImpactPoint)
