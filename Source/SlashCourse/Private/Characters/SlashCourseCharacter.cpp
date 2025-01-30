@@ -13,6 +13,7 @@
 #include "Items/Item.h"
 #include "Items/Soul.h"
 #include "Items/Treasure.h"
+#include "Items/HealthPickup.h"
 #include "Items/Weapons/Weapon.h"
 #include "Animation/AnimMontage.h"
 #include "HUD/SlashCourseHUD.h"
@@ -67,10 +68,19 @@ void ASlashCourseCharacter::AddSouls(ASoul* Soul)
 
 void ASlashCourseCharacter::AddGold(ATreasure* Treasure)
 {
-	if (Attributes)
+	if (Attributes && SlashCourseOverlay)
 	{
 		Attributes->AddGold(Treasure->GetGold());
 		SlashCourseOverlay->SetCoinCount(Attributes->GetGold());
+	}
+}
+
+void ASlashCourseCharacter::AddHealth(AHealthPickup* HealthPickup)
+{
+	if (Attributes && SlashCourseOverlay)
+	{
+		Attributes->AddHealth(HealthPickup->GetHealth());
+		SlashCourseOverlay->SetHealthBarPercent(Attributes->GetHealthPercent());
 	}
 }
 

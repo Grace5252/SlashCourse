@@ -9,6 +9,7 @@
 class AItem;
 class ASoul;
 class ATreasure;
+class AHealthPickup;
 
 UINTERFACE(MinimalAPI)
 class UPickupInterface : public UInterface
@@ -25,4 +26,5 @@ public:
 	virtual void SetOverlappingItem(AItem* Item);
 	virtual void AddSouls(ASoul* Soul);
 	virtual void AddGold(ATreasure* Treasure);
+	virtual void AddHealth(AHealthPickup* Health);
 };

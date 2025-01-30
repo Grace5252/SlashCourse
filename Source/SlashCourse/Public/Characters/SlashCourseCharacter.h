@@ -17,6 +17,7 @@ struct FInputActionValue;
 class AItem;
 class ASoul;
 class ATreasure;
+class AHealthPickup;
 class UAnimMontage;
 class USlashCourseOverlay;
 
@@ -39,6 +40,7 @@ public:
 	virtual void SetOverlappingItem(AItem* Item) override;
 	virtual void AddSouls(ASoul* Soul) override;
 	virtual void AddGold(ATreasure* Treasure) override;
+	virtual void AddHealth(AHealthPickup* Health) override;
 	/** <IPickupInterface>*/
 protected:
 	virtual void BeginPlay() override;

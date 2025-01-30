@@ -52,6 +52,7 @@ public:
 	bool IsAlive();
 	void AddGold(int32 GoldCount);
 	void AddSouls(int32 SoulsCount);
+	void AddHealth(float HealthCount);
 	
 	FORCEINLINE int32 GetGold() const { return Gold; }
 	FORCEINLINE int32 GetSouls() const { return Souls; }
