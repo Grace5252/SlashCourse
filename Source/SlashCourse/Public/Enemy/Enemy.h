@@ -35,7 +35,7 @@ protected:
 	virtual void BeginPlay() override;
 
 	/** <ABaseCharacter> */
-	virtual void Die() override;
+	virtual void Die_Implementation() override;
 	virtual bool CanAttack() override;
 	virtual void Attack() override;
 	virtual void HandleDamage(float DamageAmount) override;
@@ -103,6 +103,9 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "AI Navigation")
 	double AttackRadius = 200.f;
+
+	UPROPERTY(EditAnywhere, Category = "AI Navigation")
+	double AcceptanceRadius = 50.f;
 
 	UPROPERTY(EditAnywhere, Category = "AI Navigation")
 	double PatrolRadius = 200.f;

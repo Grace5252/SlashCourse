@@ -160,9 +160,9 @@ void ASlashCourseCharacter::DodgeEnd()
 	ActionState = EActionState::EAS_Unoccupied;
 }
 
-void ASlashCourseCharacter::Die()
+void ASlashCourseCharacter::Die_Implementation()
 {
-	Super::Die();
+	Super::Die_Implementation();
 	ActionState = EActionState::EAS_Dead;
 
 	DisableMeshCollision();
@@ -291,6 +291,10 @@ void ASlashCourseCharacter::EKeyPressed()
 {
 	if (AWeapon* OverlappingWeapon = Cast<AWeapon>(OverlappingItem))
 	{
+		if (EquippedWeapon)
+		{
+			EquippedWeapon->Destroy();
+		}
 		EquipWeapon(OverlappingWeapon);
 	}
 	else
