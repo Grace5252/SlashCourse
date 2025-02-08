@@ -61,10 +61,8 @@ Plugins/*/Intermediate/*
 # Cache files for the editor to use
 DerivedDataCache/*
 
-/Content/AncientContent
 /Content/PN_interactiveSpruceForest
 /Content/ParagonMinions
 /Content/AncientTreasures
-/Content/MedievalDungeon
 /Content/__ExternalActors__
 /Content/Weapon_Pack
